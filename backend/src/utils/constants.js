@@ -1,0 +1,284 @@
+// FILE: src/utils/constants.js
+// SPEC REFERENCE: Section 4 - RBAC Permission Matrix, Section 5 - Enums, Section 12 - Cooldown Rules
+
+// ─── ROLES ───────────────────────────────────────────────────────────────────
+const ROLES = {
+  SUPER_ADMIN: 'superAdmin',
+  ORG_ADMIN: 'orgAdmin',
+  RISK_ANALYST: 'riskAnalyst',
+  LOGISTICS_OPERATOR: 'logisticsOperator',
+  INVENTORY_MANAGER: 'inventoryManager',
+  VIEWER: 'viewer',
+};
+
+// ─── PERMISSIONS (module:action format) ──────────────────────────────────────
+const PERMISSIONS = {
+  // Users
+  USERS_CREATE: 'users:create',
+  USERS_READ: 'users:read',
+  USERS_UPDATE: 'users:update',
+  USERS_DELETE: 'users:delete',
+  USERS_ASSIGN_ROLES: 'users:assignRoles',
+
+  // Suppliers
+  SUPPLIERS_CREATE: 'suppliers:create',
+  SUPPLIERS_READ: 'suppliers:read',
+  SUPPLIERS_UPDATE: 'suppliers:update',
+  SUPPLIERS_DELETE: 'suppliers:delete',
+  SUPPLIERS_OVERRIDE_RISK: 'suppliers:overrideRisk',
+
+  // Shipments
+  SHIPMENTS_CREATE: 'shipments:create',
+  SHIPMENTS_READ: 'shipments:read',
+  SHIPMENTS_UPDATE: 'shipments:update',
+  SHIPMENTS_DELETE: 'shipments:delete',
+  SHIPMENTS_TRACK: 'shipments:track',
+
+  // Inventory
+  INVENTORY_CREATE: 'inventory:create',
+  INVENTORY_READ: 'inventory:read',
+  INVENTORY_UPDATE: 'inventory:update',
+  INVENTORY_DELETE: 'inventory:delete',
+  INVENTORY_ADJUST_FORECAST: 'inventory:adjustForecast',
+
+  // Alerts
+  ALERTS_CREATE: 'alerts:create',
+  ALERTS_READ: 'alerts:read',
+  ALERTS_ASSIGN: 'alerts:assign',
+  ALERTS_ACKNOWLEDGE: 'alerts:acknowledge',
+  ALERTS_RESOLVE: 'alerts:resolve',
+  ALERTS_OVERRIDE: 'alerts:override',
+  ALERTS_DELETE: 'alerts:delete',
+
+  // Analytics
+  ANALYTICS_VIEW_REPORTS: 'analytics:viewReports',
+  ANALYTICS_EXPORT_REPORTS: 'analytics:exportReports',
+  ANALYTICS_CUSTOM_REPORTS: 'analytics:customReports',
+
+  // Simulations
+  SIMULATIONS_EXECUTE: 'simulations:execute',
+  SIMULATIONS_VIEW: 'simulations:view',
+  SIMULATIONS_EXPORT: 'simulations:export',
+
+  // Admin
+  ADMIN_AGENT_CONTROL: 'admin:agentControl',
+  ADMIN_SYSTEM_CONFIG: 'admin:systemConfig',
+  ADMIN_AUDIT_LOGS: 'admin:auditLogs',
+};
+
+// ─── ROLE → PERMISSIONS MAPPING (Spec §4 RBAC Matrix) ────────────────────────
+const ROLE_PERMISSIONS = {
+  [ROLES.SUPER_ADMIN]: Object.values(PERMISSIONS),
+
+  [ROLES.ORG_ADMIN]: [
+    PERMISSIONS.USERS_CREATE, PERMISSIONS.USERS_READ, PERMISSIONS.USERS_UPDATE,
+    PERMISSIONS.USERS_DELETE, PERMISSIONS.USERS_ASSIGN_ROLES,
+    PERMISSIONS.SUPPLIERS_CREATE, PERMISSIONS.SUPPLIERS_READ, PERMISSIONS.SUPPLIERS_UPDATE,
+    PERMISSIONS.SUPPLIERS_DELETE, PERMISSIONS.SUPPLIERS_OVERRIDE_RISK,
+    PERMISSIONS.SHIPMENTS_CREATE, PERMISSIONS.SHIPMENTS_READ, PERMISSIONS.SHIPMENTS_UPDATE,
+    PERMISSIONS.SHIPMENTS_DELETE, PERMISSIONS.SHIPMENTS_TRACK,
+    PERMISSIONS.INVENTORY_CREATE, PERMISSIONS.INVENTORY_READ, PERMISSIONS.INVENTORY_UPDATE,
+    PERMISSIONS.INVENTORY_DELETE, PERMISSIONS.INVENTORY_ADJUST_FORECAST,
+    PERMISSIONS.ALERTS_CREATE, PERMISSIONS.ALERTS_READ, PERMISSIONS.ALERTS_ASSIGN,
+    PERMISSIONS.ALERTS_ACKNOWLEDGE, PERMISSIONS.ALERTS_RESOLVE, PERMISSIONS.ALERTS_OVERRIDE,
+    PERMISSIONS.ANALYTICS_VIEW_REPORTS, PERMISSIONS.ANALYTICS_EXPORT_REPORTS,
+    PERMISSIONS.ANALYTICS_CUSTOM_REPORTS,
+    PERMISSIONS.SIMULATIONS_EXECUTE, PERMISSIONS.SIMULATIONS_VIEW, PERMISSIONS.SIMULATIONS_EXPORT,
+    PERMISSIONS.ADMIN_SYSTEM_CONFIG, PERMISSIONS.ADMIN_AUDIT_LOGS,
+  ],
+
+  [ROLES.RISK_ANALYST]: [
+    PERMISSIONS.SUPPLIERS_READ, PERMISSIONS.SUPPLIERS_OVERRIDE_RISK,
+    PERMISSIONS.SHIPMENTS_READ, PERMISSIONS.SHIPMENTS_TRACK,
+    PERMISSIONS.INVENTORY_READ,
+    PERMISSIONS.ALERTS_CREATE, PERMISSIONS.ALERTS_READ, PERMISSIONS.ALERTS_ASSIGN,
+    PERMISSIONS.ALERTS_ACKNOWLEDGE, PERMISSIONS.ALERTS_RESOLVE, PERMISSIONS.ALERTS_OVERRIDE,
+    PERMISSIONS.ANALYTICS_VIEW_REPORTS, PERMISSIONS.ANALYTICS_EXPORT_REPORTS,
+    PERMISSIONS.ANALYTICS_CUSTOM_REPORTS,
+    PERMISSIONS.SIMULATIONS_EXECUTE, PERMISSIONS.SIMULATIONS_VIEW, PERMISSIONS.SIMULATIONS_EXPORT,
+  ],
+
+  [ROLES.LOGISTICS_OPERATOR]: [
+    PERMISSIONS.SHIPMENTS_CREATE, PERMISSIONS.SHIPMENTS_READ, PERMISSIONS.SHIPMENTS_UPDATE,
+    PERMISSIONS.SHIPMENTS_TRACK,
+    PERMISSIONS.SUPPLIERS_READ,
+    PERMISSIONS.INVENTORY_READ,
+    PERMISSIONS.ALERTS_READ, PERMISSIONS.ALERTS_ACKNOWLEDGE, PERMISSIONS.ALERTS_RESOLVE,
+    PERMISSIONS.ANALYTICS_VIEW_REPORTS,
+  ],
+
+  [ROLES.INVENTORY_MANAGER]: [
+    PERMISSIONS.INVENTORY_CREATE, PERMISSIONS.INVENTORY_READ, PERMISSIONS.INVENTORY_UPDATE,
+    PERMISSIONS.INVENTORY_DELETE, PERMISSIONS.INVENTORY_ADJUST_FORECAST,
+    PERMISSIONS.SUPPLIERS_READ,
+    PERMISSIONS.ALERTS_READ, PERMISSIONS.ALERTS_ACKNOWLEDGE, PERMISSIONS.ALERTS_RESOLVE,
+    PERMISSIONS.ANALYTICS_VIEW_REPORTS, PERMISSIONS.ANALYTICS_EXPORT_REPORTS,
+  ],
+
+  [ROLES.VIEWER]: [
+    PERMISSIONS.SUPPLIERS_READ,
+    PERMISSIONS.SHIPMENTS_READ, PERMISSIONS.SHIPMENTS_TRACK,
+    PERMISSIONS.INVENTORY_READ,
+    PERMISSIONS.ALERTS_READ,
+    PERMISSIONS.ANALYTICS_VIEW_REPORTS,
+  ],
+};
+
+// ─── RISK TIERS ───────────────────────────────────────────────────────────────
+const RISK_TIERS = {
+  LOW: 'low',
+  MEDIUM: 'medium',
+  HIGH: 'high',
+  CRITICAL: 'critical',
+};
+
+// Default risk thresholds (configurable per org via OrganizationConfig)
+const DEFAULT_RISK_THRESHOLDS = {
+  supplier: { low: 30, medium: 60, high: 80 },
+  shipment: { low: 30, medium: 60, high: 80 },
+  inventory: { low: 30, medium: 60, high: 80 },
+};
+
+// ─── ALERT TYPES ──────────────────────────────────────────────────────────────
+const ALERT_TYPES = {
+  SUPPLIER_RISK: 'supplierRisk',
+  SHIPMENT_DELAY: 'shipmentDelay',
+  INVENTORY_STOCKOUT: 'inventoryStockout',
+  MANUAL_ALERT: 'manualAlert',
+};
+
+// ─── ALERT STATUSES ───────────────────────────────────────────────────────────
+const ALERT_STATUSES = {
+  GENERATED: 'generated',
+  ASSIGNED: 'assigned',
+  ACKNOWLEDGED: 'acknowledged',
+  IN_REVIEW: 'inReview',
+  RESOLVED: 'resolved',
+  ARCHIVED: 'archived',
+};
+
+// ─── SHIPMENT STATUSES ────────────────────────────────────────────────────────
+const SHIPMENT_STATUSES = {
+  REGISTERED: 'registered',
+  IN_TRANSIT: 'inTransit',
+  DELAYED: 'delayed',
+  REROUTED: 'rerouted',
+  DELIVERED: 'delivered',
+  CLOSED: 'closed',
+};
+
+// Valid state transitions (Spec §11 Shipment State Machine)
+const VALID_SHIPMENT_TRANSITIONS = {
+  [SHIPMENT_STATUSES.REGISTERED]: [SHIPMENT_STATUSES.IN_TRANSIT],
+  [SHIPMENT_STATUSES.IN_TRANSIT]: [SHIPMENT_STATUSES.DELAYED, SHIPMENT_STATUSES.DELIVERED],
+  [SHIPMENT_STATUSES.DELAYED]: [SHIPMENT_STATUSES.IN_TRANSIT, SHIPMENT_STATUSES.REROUTED],
+  [SHIPMENT_STATUSES.REROUTED]: [SHIPMENT_STATUSES.IN_TRANSIT],
+  [SHIPMENT_STATUSES.DELIVERED]: [SHIPMENT_STATUSES.CLOSED],
+  [SHIPMENT_STATUSES.CLOSED]: [], // Final state
+};
+
+// ─── SUPPLIER STATUSES ────────────────────────────────────────────────────────
+const SUPPLIER_STATUSES = {
+  ACTIVE: 'active',
+  UNDER_WATCH: 'underWatch',
+  HIGH_RISK: 'highRisk',
+  SUSPENDED: 'suspended',
+};
+
+// ─── ALERT COOLDOWN DURATIONS (ms) — Spec §12 ────────────────────────────────
+const ALERT_COOLDOWNS = {
+  [ALERT_TYPES.SUPPLIER_RISK]: 4 * 60 * 60 * 1000,      // 4 hours
+  [ALERT_TYPES.SHIPMENT_DELAY]: 1 * 60 * 60 * 1000,     // 1 hour
+  [ALERT_TYPES.INVENTORY_STOCKOUT]: 2 * 60 * 60 * 1000, // 2 hours
+  [ALERT_TYPES.MANUAL_ALERT]: 0,                          // No cooldown
+};
+
+// ─── ESCALATION TIMING (ms) — Spec §12 ───────────────────────────────────────
+const ESCALATION_TIMING = {
+  [RISK_TIERS.CRITICAL]: {
+    0: 15 * 60 * 1000,  // Level 0→1: 15 minutes
+    1: 30 * 60 * 1000,  // Level 1→2: 30 minutes
+    2: 60 * 60 * 1000,  // Level 2→3: 1 hour
+  },
+  [RISK_TIERS.HIGH]: {
+    0: 30 * 60 * 1000,  // Level 0→1: 30 minutes
+    1: 60 * 60 * 1000,  // Level 1→2: 1 hour
+    2: 120 * 60 * 1000, // Level 2→3: 2 hours
+  },
+};
+
+// ─── ESCALATION ROLE LADDER ───────────────────────────────────────────────────
+const ESCALATION_ROLES = [
+  ROLES.LOGISTICS_OPERATOR,
+  ROLES.RISK_ANALYST,
+  ROLES.ORG_ADMIN,
+  ROLES.SUPER_ADMIN,
+];
+
+// ─── AGENT NAMES ─────────────────────────────────────────────────────────────
+const AGENT_NAMES = {
+  SUPPLIER_RISK: 'supplierRisk',
+  SHIPMENT_RISK: 'shipmentRisk',
+  INVENTORY_RISK: 'inventoryRisk',
+  ALERT_ESCALATION: 'alertEscalation',
+  REPORT_GENERATOR: 'reportGenerator',
+};
+
+// ─── ERROR CODES (Spec §13) ───────────────────────────────────────────────────
+const ERROR_CODES = {
+  VALIDATION_ERROR: 'VALIDATION_ERROR',
+  AUTH_TOKEN_EXPIRED: 'AUTH_TOKEN_EXPIRED',
+  AUTH_TOKEN_INVALID: 'AUTH_TOKEN_INVALID',
+  INSUFFICIENT_PERMISSIONS: 'INSUFFICIENT_PERMISSIONS',
+  RESOURCE_NOT_FOUND: 'RESOURCE_NOT_FOUND',
+  DUPLICATE_RESOURCE: 'DUPLICATE_RESOURCE',
+  CONCURRENCY_CONFLICT: 'CONCURRENCY_CONFLICT',
+  BUSINESS_RULE_VIOLATION: 'BUSINESS_RULE_VIOLATION',
+  RATE_LIMIT_EXCEEDED: 'RATE_LIMIT_EXCEEDED',
+  INTERNAL_SERVER_ERROR: 'INTERNAL_SERVER_ERROR',
+  AGENT_ALREADY_RUNNING: 'AGENT_ALREADY_RUNNING',
+  FEATURE_DISABLED: 'FEATURE_DISABLED',
+};
+
+// ─── PAGINATION DEFAULTS ──────────────────────────────────────────────────────
+const PAGINATION = {
+  DEFAULT_PAGE: 1,
+  DEFAULT_LIMIT: 10,
+  MAX_LIMIT: 100,
+};
+
+// ─── CARRIERS ─────────────────────────────────────────────────────────────────
+const CARRIERS = ['fedex', 'ups', 'dhl', 'usps', 'other'];
+
+// ─── SUPPLIER CATEGORIES ──────────────────────────────────────────────────────
+const SUPPLIER_CATEGORIES = ['raw_materials', 'components', 'finished_goods', 'services'];
+
+// ─── SIMULATION TYPES ─────────────────────────────────────────────────────────
+const SIMULATION_TYPES = {
+  SUPPLIER_FAILURE: 'supplierFailure',
+  SHIPMENT_DELAY: 'shipmentDelay',
+  DEMAND_SPIKE: 'demandSpike',
+  CUSTOM: 'custom',
+};
+
+module.exports = {
+  ROLES,
+  PERMISSIONS,
+  ROLE_PERMISSIONS,
+  RISK_TIERS,
+  DEFAULT_RISK_THRESHOLDS,
+  ALERT_TYPES,
+  ALERT_STATUSES,
+  SHIPMENT_STATUSES,
+  VALID_SHIPMENT_TRANSITIONS,
+  SUPPLIER_STATUSES,
+  ALERT_COOLDOWNS,
+  ESCALATION_TIMING,
+  ESCALATION_ROLES,
+  AGENT_NAMES,
+  ERROR_CODES,
+  PAGINATION,
+  CARRIERS,
+  SUPPLIER_CATEGORIES,
+  SIMULATION_TYPES,
+};

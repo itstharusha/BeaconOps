@@ -1,0 +1,16 @@
+{
+    "name": "beaconops-project",
+    "version": "1.0.0",
+    "description": "BeaconOps Smart Logistics & Delivery Management System",
+    "scripts": {
+        "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",
+        "backend": "cd backend && npm run dev",
+        "frontend": "cd frontend && npm run dev",
+        "start:all": "concurrently \"npm run backend\" \"npm run frontend\"",
+        "all": "npm run start:all",
+        "start": "npm run start:all"
+    },
+    "devDependencies": {
+        "concurrently": "^8.2.2"
+    }
+}
